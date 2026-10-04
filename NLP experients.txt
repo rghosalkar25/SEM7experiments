@@ -1,0 +1,137 @@
+#Experiment 3
+from sklearn.feature_extraction.text import TfidfVectorizer
+import pandas as pd
+ 
+docs = [
+    "I love natural language processing",
+    "I love machine learning",
+    "NLP is a part of machine learning",
+]
+ 
+tfidf = TfidfVectorizer()
+matrix = tfidf.fit_transform(docs)
+ 
+df = pd.DataFrame(matrix.toarray(), columns=tfidf.get_feature_names_out())
+print(df.round(2).to_string())
+
+•	docs is our small collection of three documents (sentences).
+•	TfidfVectorizer() creates the TF-IDF tool.
+•	fit_transform(docs) learns the vocabulary and calculates the scores.
+•	get_feature_names_out() gives the list of words (the column names).
+•	toarray() converts the result into a normal table that we can print.
+
+#Experiment 4
+from gensim.models import Word2Vec
+ 
+sentences = [
+    ["i", "love", "natural", "language", "processing"],
+    ["i", "love", "machine", "learning"],
+    ["nlp", "is", "part", "of", "machine", "learning"],
+    ["deep", "learning", "is", "part", "of", "machine", "learning"],
+]
+ 
+model = Word2Vec(sentences, vector_size=10, window=2, min_count=1, sg=1, seed=1, workers=1)
+ 
+print("Vector for 'learning':")
+print(model.wv["learning"].round(2))
+print("Similarity (machine, learning):", round(model.wv.similarity("machine", "learning"), 2))
+print("Similar to 'machine':", model.wv.most_similar("machine", topn=2))
+
+•	sentences is a list of tokenized sentences (each sentence is a list of words).
+•	Word2Vec(...) trains the model on these sentences.
+•	model.wv["learning"] gives the vector of the word learning.
+•	model.wv.similarity(a, b) gives the cosine similarity between two words.
+•	model.wv.most_similar(word, topn=2) gives the two closest words.
+
+#Experiment 5
+from collections import Counter
+ 
+text = "i love nlp i love python i love coding"
+words = text.split()
+ 
+bigrams = list(zip(words, words[1:]))
+bigram_count = Counter(bigrams)
+word_count = Counter(words)
+ 
+print("Bigram counts:", dict(bigram_count))
+ 
+# P(love | i) = count(i love) / count(i)
+p = bigram_count[("i", "love")] / word_count["i"]
+print("P(love | i) =", p)
+
+•	text.split() breaks the sentence into words.
+•	zip(words, words[1:]) joins each word with the next word and makes bigrams.
+•	Counter counts how many times each bigram and each word appears.
+•	The last lines apply the formula P(love | i) = Count(i love) / Count(i).
+
+#Experiment 6
+from nltk.stem import PorterStemmer
+import spacy
+ 
+nlp = spacy.load("en_core_web_sm")
+stemmer = PorterStemmer()
+ 
+words = "studies studying better running flies"
+print("Word       Stem       Lemma")
+for t in nlp(words):
+    print(f"{t.text:<10} {stemmer.stem(t.text):<10} {t.lemma_}")
+
+•	spacy.load("en_core_web_sm") loads the English model.
+•	PorterStemmer().stem(word) gives the stem.
+•	token.lemma_ gives the lemma from spaCy.
+•	The loop prints the word, its stem and its lemma side by side so we can compare.
+
+#Experiment7
+import spacy
+ 
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("Sundar Pichai is the CEO of Google in California.")
+ 
+print("POS Tagging")
+for t in doc:
+    print(t.text, "->", t.pos_)
+ 
+print("\nNamed Entities")
+for e in doc.ents:
+    print(e.text, "->", e.label_)
+
+•	nlp("...") processes the sentence and returns a doc object.
+•	t.text and t.pos_ give each word and its POS tag.
+•	doc.ents holds the named entities. e.text is the name, e.label_ is its type.
+
+#Experiment8
+import spacy
+from nltk.stem import PorterStemmer
+ 
+nlp = spacy.load("en_core_web_sm")
+stemmer = PorterStemmer()
+ 
+for w in ["unhappiness", "played", "books"]:
+    t = nlp(w)[0]
+    print(w, "| root:", t.lemma_, "| stem:", stemmer.stem(w), "| info:", t.morph)
+
+•	nlp(w)[0] processes one word and takes its token.
+•	t.lemma_ gives the root (lemma) of the word.
+•	stemmer.stem(w) gives the stem.
+•	t.morph gives the grammar features (inflectional information).
+
+#Experiment 9
+import spacy
+from nltk import RegexpParser
+ 
+nlp = spacy.load("en_core_web_sm")
+doc = nlp("The quick brown fox jumps over the lazy dog")
+ 
+# Method 1: spaCy noun chunks
+print("Noun chunks:", [c.text for c in doc.noun_chunks])
+ 
+# Method 2: NLTK RegexpParser (NP = optional determiner + adjectives + noun)
+tagged = [(t.text, t.tag_) for t in doc]
+tree = RegexpParser("NP: {<DT>?<JJ>*<NN>}").parse(tagged)
+print(tree)
+
+•	doc.noun_chunks gives the noun phrases directly from spaCy.
+•	tagged is a list of (word, tag) pairs made from the spaCy tags.
+•	RegexpParser(grammar).parse(tagged) applies our rule and returns a tree.
+
+
